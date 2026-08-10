@@ -1,0 +1,82 @@
+version: 2
+
+models:
+  - name: fact_trips
+    columns:
+      - name: trip_id
+        tests:
+          - unique
+          - not_null
+      - name: customer_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('DimCustomers')
+                field: customer_id
+      - name: driver_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('DimDrivers')
+                field: driver_id
+      - name: vehicle_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('DimVehicles')
+                field: vehicle_id
+
+  - name: fact_payments
+    columns:
+      - name: payment_id
+        tests:
+          - unique
+          - not_null
+      - name: customer_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('DimCustomers')
+                field: customer_id
+      - name: trip_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('fact_trips')
+                field: trip_id
+
+  - name: DimDrivers
+    columns:
+      - name: driver_id
+        tests:
+          - not_null
+      - name: dbt_scd_id
+        tests:
+          - unique
+
+  - name: DimLocations
+    columns:
+      - name: location_id
+        tests:
+          - not_null
+      - name: dbt_scd_id
+        tests:
+          - unique
+
+  - name: DimVehicles
+    columns:
+      - name: vehicle_id
+        tests:
+          - not_null
+      - name: dbt_scd_id
+        tests:
+          - unique
+
+  - name: DimCustomers
+    columns:
+      - name: customer_id
+        tests:
+          - not_null
+      - name: dbt_scd_id
+        tests:
+          - unique
