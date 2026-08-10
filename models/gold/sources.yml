@@ -1,0 +1,13 @@
+version: 2
+
+sources:
+  - name: source_silver
+    database: pysparkdbt
+    schema: silver
+    tables:
+      - name: customers
+      - name: locations
+      - name: drivers
+      - name: vehicles
+      - name: trips
+      - name: payments
