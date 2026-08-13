@@ -68,7 +68,21 @@ flowchart LR
     style SILVER fill:#9ca3af,color:#000
     style GOLD fill:#fbbf24,color:#000
 ```
+## Data Quality
 
+Two-layer data quality, enforced at the right stage:
+
+**Silver — gatekeeper (quarantine).** Every row is validated against business rules before entering the silver tables. Rows that fail are diverted to a `{table}_quarantine` table with a `quarantine_reason` and `quarantined_at` timestamp — bad data never reaches gold, but is never lost (preserved for investigation). Checks include:
+- `fare_amount > 0`, `distance_km > 0` (trips)
+- `driver_rating` between 0 and 5 (drivers)
+- `signup_date` not in the future (customers)
+- `latitude` / `longitude` within valid geographic ranges (locations)
+- `year` and `vehicle_type` within valid sets (vehicles)
+- valid `payment_method`, `payment_status`, `trip_status` values
+
+**Gold — contract (dbt tests).** dbt `accepted_values` tests assert the valid-set contracts hold, failing the build if any invalid category appears. Range checks (e.g. amounts > 0) are enforced upstream in silver, so they are not duplicated here — each check lives at the layer where it belongs.
+
+Verified by injecting a known-bad row (negative fare) and confirming it was quarantined, not written to the clean table.
 ### The Medallion Layers
 
 **Bronze (PySpark)** — Raw ingestion. Reads the six CSVs via Structured Streaming (`readStream` + trigger-once) and lands them as Delta tables. Uses **explicit `StructType` schemas** instead of `inferSchema` — this is faster (no sampling pass), correct (e.g. `phone_number` is typed as `string` so leading zeros are never stripped), and stable (the schema is a fixed contract, not a per-run guess).
