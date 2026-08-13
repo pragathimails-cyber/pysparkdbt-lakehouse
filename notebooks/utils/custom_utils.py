@@ -78,3 +78,25 @@ class transformations:
         except Exception as e:
             logger.error(f"Handling nulls failed: {e}")
             raise
+
+    def validate_and_quarantine(self,df,good_condition,table,reason):
+        try:
+            logger.info(f"Validating and quarantining data")
+            good_rows = df.filter(good_condition)
+            bad_rows = df.filter(~good_condition)
+            bad_count = bad_rows.count()
+            if bad_count > 0:
+                logger.warning(f"{table}: {bad_count} rows failed DQ, quarantining")
+                bad_rows = bad_rows.withColumn("quarantine_reason",lit(reason))
+                bad_rows = bad_rows.withColumn("quarantined_at",current_timestamp())
+                bad_rows.write.format("delta").mode("append").option("mergeSchema","true")\
+                    .saveAsTable(f"pysparkdbt.silver.{table}_quarantine")
+                logger.info(f"Quarantined {bad_count} rows")
+                logger.info(f"Validating and quarantining data completed")
+            else:
+                logger.info(f"No rows to quarantine")
+            return good_rows
+        except Exception as e:
+            logger.error(f"Validating and quarantining data failed: {e}")
+            raise
+                        
