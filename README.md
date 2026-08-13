@@ -89,7 +89,7 @@ Verified by injecting a known-bad row (negative fare) and confirming it was quar
 
 **Silver (PySpark)** — Clean and standardize. A single **config-driven** function processes every table through a shared backbone (`trim → handle_nulls → dedup → timestamp → upsert`), with each table's unique steps injected as a per-table function. Idempotent by design (upsert/MERGE, not append). Every operation is logged, and errors are caught, logged with context, and re-raised.
 
-**Gold (dbt)** — Model for analytics. Four **SCD2 dimensions** (via dbt snapshots) and two **incremental fact** models, forming a two-fact galaxy schema, validated by 17 dbt tests.
+**Gold (dbt)** — Model for analytics. Four **SCD2 dimensions** (via dbt snapshots) and two **incremental fact** models, forming a two-fact galaxy schema, validated by 20 dbt tests.
 
 ---
 
@@ -138,7 +138,7 @@ erDiagram
 
 **SCD2 is handled in Gold via dbt snapshots — not hand-written in PySpark.** History tracking is a modeling concern, and dbt snapshots manage `valid_from` / `valid_to` / surrogate keys automatically and tested. (An earlier hand-written PySpark SCD2 had a null-key bug — a good reminder not to reinvent what a tool does reliably.)
 
-**Dropped `start_location` / `end_location` from trips — a real data-quality finding.** The synthetic source had a referential-integrity gap: 50 location cities vs ~1,854 distinct trip location names, with only ~5 overlapping. Rather than fabricate a join that would null ~99.7% of rows, the columns were dropped and flagged as a data-quality issue, while the `locations` dimension was retained to demonstrate the SCD2 technique.
+**Dropped `start_location` / `end_location` from trips — a real data-quality finding.** The synthetic source had a referential-integrity gap: 50 location cities vs ~959 distinct trip location names, with only ~5 overlapping. Rather than fabricate a join that would null ~99.7% of rows, the columns were dropped and flagged as a data-quality issue, while the `locations` dimension was retained to demonstrate the SCD2 technique.
 
 **`trip_status` kept as a degenerate dimension.** Cancelled / Ongoing / Completed lives in no dimension table, so it stays on `fact_trips` — dropping it would lose cancellation- and completion-rate analytics.
 
