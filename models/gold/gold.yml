@@ -7,6 +7,12 @@ models:
         tests:
           - unique
           - not_null
+      - name: trip_status        
+        tests:
+          - accepted_values:
+              arguments: 
+                values: ['Cancelled', 'Ongoing', 'Completed']
+                
       - name: customer_id
         tests:
           - relationships:
@@ -44,6 +50,17 @@ models:
               arguments:
                 to: ref('fact_trips')
                 field: trip_id
+      - name: payment_status
+        tests:
+          - accepted_values:
+              arguments: 
+                values: ['Success', 'Failed', 'Pending']
+      - name: payment_method     
+        tests:
+          - accepted_values:
+              arguments: 
+                values: ['Card', 'Cash', 'Wallet']
+      
 
   - name: DimDrivers
     columns:
@@ -80,3 +97,5 @@ models:
       - name: dbt_scd_id
         tests:
           - unique
+
+    
